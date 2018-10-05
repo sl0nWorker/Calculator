@@ -19,22 +19,24 @@ public class Calculator {
     public String evaluate(String statement) {
         // TODO: Implement the logic here
         class OperatorsStack {
-            private int overSize;
-            private char[] stackArray;
+            private ArrayList<Character> stackArray;
             private int top;
 
-            public OperatorsStack(int size) {
-                overSize = size;
-                stackArray = new char[overSize];
+            public OperatorsStack() {
+                int overSize = 100;
+                stackArray = new ArrayList<>();
+                for (int i = 0; i < overSize; i++) {
+                    stackArray.add('@');
+                }
                 top = -1;
             }
 
             public void push(char ch) {
-                stackArray[++top] = ch;
+                stackArray.set(++top, ch);
             }
 
             public char pop() {
-                return stackArray[top--];
+                return stackArray.get(top--);
             }
 
             public boolean isEmpty() {
@@ -51,11 +53,10 @@ public class Calculator {
             private List<String> tokBuf;
             private List<String> output;
 
-            public ToPostfix(int overSize, List<String> tokensBuf) {
-                opStack = new OperatorsStack(overSize);
+            public ToPostfix(List<String> tokensBuf) {
+                opStack = new OperatorsStack();
                 tokBuf = tokensBuf;
                 output = new ArrayList<>(tokBuf.size());
-
             }
 
             public void gotOper(char opThis, int priorFirst) {
@@ -128,7 +129,7 @@ public class Calculator {
             private List<String> valueStack;
             private List<String> input;
 
-            public PareserPostix(int overSize, List<String> postfixStatement) {
+            public PareserPostix(List<String> postfixStatement) {
                 valueStack = new ArrayList<>(postfixStatement);
                 for (int i = 0; i < postfixStatement.size(); i++) {
                     valueStack.add("");
@@ -159,7 +160,7 @@ public class Calculator {
                                 res = num1 * num2;
                                 break;
                             case "/":
-                                if (num1 == 0 || num2 == 0) throw new IllegalArgumentException();
+                                if (num2 == 0) throw new IllegalArgumentException();
                                 res = num1 / num2;
                                 break;
                         }
@@ -202,15 +203,15 @@ public class Calculator {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            // add to logger
+            throw new RuntimeException();
         }
         if (tokBuf.size() <= 2)
             return null;
-        int overSize = 100;
-        ToPostfix postfix = new ToPostfix(overSize, tokBuf);
+        ToPostfix postfix = new ToPostfix(tokBuf);
         List<String> postfixStatement = postfix.doPostfix();
         if (postfixStatement == null) return null;
-        PareserPostix parser = new PareserPostix(overSize, postfix.doPostfix());
+        PareserPostix parser = new PareserPostix(postfix.doPostfix());
         double res = 0;
         try {
             res = parser.doParse();
@@ -220,5 +221,10 @@ public class Calculator {
         int check = (int) res;
         if (res / check == 1) return "" + check;
         return String.valueOf(parser.doParse());
+    }
+
+    public static void main(String[] args) {
+        Calculator calc = new Calculator();
+        System.out.println(calc.evaluate(args.toString()));
     }
 }
